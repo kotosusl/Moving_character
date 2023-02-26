@@ -2,6 +2,7 @@ import sys
 import pygame
 import os
 
+map_file_name = input()
 pygame.init()
 size = WIDTH, HEIGHT = 500, 500
 screen = pygame.display.set_mode(size)
@@ -31,6 +32,7 @@ def load_level(filename):
         level_map = [line.strip() for line in mapFile]
 
     # и подсчитываем максимальную длину
+    global max_width
     max_width = max(map(len, level_map))
 
     # дополняем каждую строку пустыми клетками ('.')
@@ -100,13 +102,13 @@ class Player(pygame.sprite.Sprite):
     def update(self, *args) -> None:
         for event in args:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT and map_list[self.pos_y][self.pos_x - 1] != '#':
+                if event.key == pygame.K_LEFT and self.pos_x - 1 > -1 and map_list[self.pos_y][self.pos_x - 1] != '#':
                     self.pos_x -= 1
-                elif event.key == pygame.K_RIGHT and map_list[self.pos_y][self.pos_x + 1] != '#':
+                elif event.key == pygame.K_RIGHT and self.pos_x + 1 < max_width and map_list[self.pos_y][self.pos_x + 1] != '#':
                     self.pos_x += 1
-                elif event.key == pygame.K_UP and map_list[self.pos_y - 1][self.pos_x] != '#':
+                elif event.key == pygame.K_UP and self.pos_y - 1 > -1 and map_list[self.pos_y - 1][self.pos_x] != '#':
                     self.pos_y -= 1
-                elif event.key == pygame.K_DOWN and map_list[self.pos_y + 1][self.pos_x] != '#':
+                elif event.key == pygame.K_DOWN and self.pos_y + 1 < len(map_list) and map_list[self.pos_y + 1][self.pos_x] != '#':
                     self.pos_y += 1
         self.rect = self.image.get_rect().move(
                 tile_width * self.pos_x + 15, tile_height * self.pos_y + 5)
@@ -133,11 +135,11 @@ def generate_level(level):
     return new_player, x, y
 
 
-player, level_x, level_y = generate_level(load_level('map.txt'))
-map_list = load_level('map.txt')
+max_width = 0
+player, level_x, level_y = generate_level(load_level(map_file_name))
+map_list = load_level(map_file_name)
 running = True
 pygame.display.set_caption('Перемещение героя')
-print(load_level('map.txt'))
 start_screen()
 while running:
     events = pygame.event.get()
