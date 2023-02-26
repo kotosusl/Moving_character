@@ -27,6 +27,9 @@ def load_image(name, colorkey=None):  # функция обработки кар
 
 def load_level(filename):
     filename = "data/" + filename
+    if not os.path.exists(filename):
+        print(f'Файла {filename} не существует')
+        terminate()
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
