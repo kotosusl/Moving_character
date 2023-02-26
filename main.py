@@ -1,6 +1,7 @@
 import sys
 import pygame
 import os
+import pprint
 
 map_file_name = input()
 pygame.init()
@@ -50,7 +51,7 @@ def terminate():
 
 def start_screen():
     intro_text = ["Перемещение героя", "",
-                  "Камера"]
+                  "Новый уровень"]
 
     fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
@@ -99,7 +100,6 @@ class Tile(pygame.sprite.Sprite):
         self.rect.y = tile_height * self.y + (y * tile_height) - HEIGHT // 2
 
 
-
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
@@ -112,16 +112,40 @@ class Player(pygame.sprite.Sprite):
     def update(self, *args) -> None:
         for event in args:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT and self.pos_x - 1 > -1 and map_list[self.pos_y][self.pos_x - 1] != '#':
-                    self.pos_x -= 1
-                elif event.key == pygame.K_RIGHT and self.pos_x + 1 < max_width and map_list[self.pos_y][self.pos_x + 1] != '#':
-                    self.pos_x += 1
-                elif event.key == pygame.K_UP and self.pos_y - 1 > -1 and map_list[self.pos_y - 1][self.pos_x] != '#':
-                    self.pos_y -= 1
-                elif event.key == pygame.K_DOWN and self.pos_y + 1 < len(map_list) and map_list[self.pos_y + 1][self.pos_x] != '#':
-                    self.pos_y += 1
-        '''self.rect = self.image.get_rect().move(
-                tile_width * self.pos_x + 15, tile_height * self.pos_y + 5)'''
+
+                if event.key == pygame.K_LEFT and list(map_list)[self.pos_y][self.pos_x - 1] != '#':
+                    for i in range(max_width):
+                        map_list[i] = map_list[i][-1] + map_list[i][:-1]
+                elif event.key == pygame.K_RIGHT:
+                    if self.pos_x < 9 and map_list[self.pos_y][self.pos_x + 1] != '#':
+                        for i in range(max_width):
+                            map_list[i] += map_list[i][0]
+                            map_list[i] = map_list[i][1:]
+                    elif self.pos_x == 9 and map_list[self.pos_y][0] != '#':
+                        for i in range(max_width):
+                            map_list[i] += map_list[i][0]
+                            map_list[i] = map_list[i][1:]
+
+                elif event.key == pygame.K_UP and list(map_list)[self.pos_y - 1][self.pos_x] != '#':
+                    map_list.insert(0, map_list[-1])
+                    map_list.pop(-1)
+
+                elif event.key == pygame.K_DOWN:
+                    if self.pos_y < 9 and map_list[self.pos_y + 1][self.pos_x] != '#':
+                        map_list.append(map_list[0])
+                        map_list.pop(0)
+                    elif self.pos_y == 9 and map_list[0][self.pos_x] != '#':
+                        map_list.append(map_list[0])
+                        map_list.pop(0)
+
+        for i in tiles_group:
+            i.kill()
+        for y in range(len(map_list)):
+            for x in range(len(map_list[y])):
+                if map_list[y][x] == '#':
+                    Tile('wall', x, y)
+                elif map_list[y][x] == '.' or map_list[y][x] == '@':
+                    Tile('empty', x, y)
 
 
 all_sprites = pygame.sprite.Group()
@@ -166,7 +190,7 @@ player, level_x, level_y = generate_level(load_level(map_file_name))
 map_list = load_level(map_file_name)
 running = True
 camera = Camera()
-pygame.display.set_caption('Перемещение героя. Камера')
+pygame.display.set_caption('Перемещение героя. Новый уровень')
 start_screen()
 while running:
     screen.fill((0, 0, 0))
